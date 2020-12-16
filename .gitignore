@@ -77,6 +77,5 @@ DerivedDataCache/*
 
 #Directory
 Content/Geometry/
-Content/Mannequin/
 Content/StarterContent/
 .vs/
