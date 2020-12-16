@@ -2,6 +2,11 @@
 *.db
 .vs/InnovativeTesting/v15/.suo
 
+#Directory
+Content/StarterContent
+Contet/ThirdPerson
+Contet/Mannequin
+
 -# Visual Studio 2015 user specific files
 .vs/
 
