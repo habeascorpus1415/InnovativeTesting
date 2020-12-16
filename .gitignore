@@ -76,5 +76,5 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 #Directory
-Content/StarterContent/
+
 .vs/
