@@ -23,6 +23,9 @@ public class InnovativeTesting : ModuleRules
             "GameplayAbilities",
             "GameplayTags",
             "GameplayTasks",
+			/* Slate */
+			"Slate",
+            "SlateCore",
         });
 	}
 }
