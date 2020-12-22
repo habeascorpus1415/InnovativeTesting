@@ -13,5 +13,12 @@ UCLASS()
 class INNOVATIVETESTING_API UBaseAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+
+	// ??????? 
+	bool CharacterAbilitiesGiven = false;
+
+	// ??????? 
+	bool StartupEffectsApplied = false;
 };
