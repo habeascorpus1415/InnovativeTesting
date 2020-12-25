@@ -76,4 +76,10 @@ protected:
 	/* Initialize Attributes */
 	virtual void InitializeAttributes();
 
+	/* Base Effect */
+	virtual void AddStartupEffects();
+
+	/* Base Abilities */
+	virtual void AddCharacterAbilities();
+
 };

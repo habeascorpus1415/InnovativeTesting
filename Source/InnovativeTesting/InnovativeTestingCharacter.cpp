@@ -54,8 +54,6 @@ void AInnovativeTestingCharacter::SetupPlayerInputComponent(class UInputComponen
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AInnovativeTestingCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AInnovativeTestingCharacter::MoveRight);
@@ -68,34 +66,6 @@ void AInnovativeTestingCharacter::SetupPlayerInputComponent(class UInputComponen
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AInnovativeTestingCharacter::LookUpAtRate);
 
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AInnovativeTestingCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AInnovativeTestingCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AInnovativeTestingCharacter::OnResetVR);
-}
-
-
-void AInnovativeTestingCharacter::OnResetVR()
-{
-	// If InnovativeTesting is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in InnovativeTesting.Build.cs is not automatically propagated
-	// and a linker error will result.
-	// You will need to either:
-	//		Add "HeadMountedDisplay" to [YourProject].Build.cs PublicDependencyModuleNames in order to build successfully (appropriate if supporting VR).
-	// or:
-	//		Comment or delete the call to ResetOrientationAndPosition below (appropriate if not supporting VR)
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AInnovativeTestingCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void AInnovativeTestingCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
 }
 
 void AInnovativeTestingCharacter::TurnAtRate(float Rate)

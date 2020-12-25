@@ -8,6 +8,7 @@
 #include "BaseAbilitySystemComponent.h"
 #include "BaseAttributeSet.h"
 #include "AbilitySystemInterface.h"
+#include "Ability/BaseGameplayAbility.h"
 
 #include "BasePlayerState.generated.h"
 
@@ -32,8 +33,13 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
 	TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
+	// These effects are only applied one time on startup
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
 	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
+
+	// Default abilities for this Character. These will be removed on Character death and regiven if Character respawns.
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
+	TArray<TSubclassOf<class UBaseGameplayAbility>> StartupAbilities;
 
 protected:
 

@@ -2,6 +2,7 @@
 
 
 #include "BaseCharacter.h"
+#include "Ability/BaseGameplayAbility.h"
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -22,6 +23,11 @@ void ABaseCharacter::PossessedBy(AController * NewController)
 {
 	Super::PossessedBy(NewController);
 
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
 	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
 
 	if (!IsValid(L_PlayerState))
@@ -36,16 +42,20 @@ void ABaseCharacter::PossessedBy(AController * NewController)
 		return;
 	}
 
-	L_PlayerState->GetAttributeSetBase()->SetHealth(100.f);
+	//L_PlayerState->GetAttributeSetBase()->SetHealth(100.f);
 
 	InitializeAttributes();
+
+	AddStartupEffects();
+
+	AddCharacterAbilities();
 }
 
 void ABaseCharacter::InitializeAttributes()
 {
 	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
 
-	if (IsValid(L_PlayerState))
+	if (!IsValid(L_PlayerState))
 	{
 		return;
 	}
@@ -65,6 +75,91 @@ void ABaseCharacter::InitializeAttributes()
 	FGameplayEffectContextHandle EffectContext = L_PlayerState->GetAbilitySystemComponent()->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
+	FGameplayEffectSpecHandle NewHandle = L_PlayerState->GetAbilitySystemComponent()->
+		MakeOutgoingSpec(L_PlayerState->DefaultAttributes, 1.0f, EffectContext);
+
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = L_PlayerState->GetAbilitySystemComponent()->
+			ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), L_PlayerState->GetAbilitySystemComponent());
+	}
+
+}
+
+void ABaseCharacter::AddStartupEffects()
+{
+	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
+
+	if (!IsValid(L_PlayerState))
+	{
+		return;
+	}
+
+	if (!IsValid(L_PlayerState->GetAbilitySystemComponent()))
+	{
+		return;
+	}
+
+	UBaseAbilitySystemComponent * L_AbilitySystemComponent = Cast<UBaseAbilitySystemComponent>(L_PlayerState->GetAbilitySystemComponent());
+
+	if (!IsValid(L_AbilitySystemComponent))
+	{
+		return;
+	}
+
+	if (GetLocalRole() != ROLE_Authority ||	L_AbilitySystemComponent->StartupEffectsApplied)
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = L_AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	for (TSubclassOf<UGameplayEffect> GameplayEffect : L_PlayerState->StartupEffects)
+	{
+		FGameplayEffectSpecHandle NewHandle = L_AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, 1.0f, EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = L_AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), L_AbilitySystemComponent);
+		}
+	}
+
+	L_AbilitySystemComponent->StartupEffectsApplied = true;
+}
+
+void ABaseCharacter::AddCharacterAbilities()
+{
+	/*if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
+
+	if (!IsValid(L_PlayerState))
+	{
+		return;
+	}
+
+	UBaseAbilitySystemComponent * L_AbilitySystemComponent = CastChecked<UBaseAbilitySystemComponent>(L_PlayerState->GetAbilitySystemComponent());
+
+	if (!IsValid(L_AbilitySystemComponent))
+	{
+		return;
+	}
+
+	if (L_AbilitySystemComponent->CharacterAbilitiesGiven)
+	{
+		return;
+	}
+
+	for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : L_PlayerState->StartupAbilities)
+	{
+		L_AbilitySystemComponent->GiveAbility(
+			FGameplayAbilitySpec(StartupAbility, 1.0f, static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));
+	}
+
+	L_AbilitySystemComponent->CharacterAbilitiesGiven = true;*/
 }
 
 float ABaseCharacter::GetHealth() const
