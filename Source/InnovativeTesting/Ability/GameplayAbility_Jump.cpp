@@ -24,6 +24,8 @@ bool UGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle 
 
 void UGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo * OwnerInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData * TriggerEventData)
 {
+	Super::ActivateAbility(Handle, OwnerInfo, ActivationInfo, TriggerEventData);
+
 	if (HasAuthorityOrPredictionKey(OwnerInfo, &ActivationInfo))
 	{
 		if (!CommitAbility(Handle, OwnerInfo, ActivationInfo))
@@ -38,6 +40,8 @@ void UGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 void UGameplayAbility_Jump::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo * ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+
 	if (ActorInfo != NULL && ActorInfo->AvatarActor != NULL)
 	{
 		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
@@ -53,6 +57,8 @@ void UGameplayAbility_Jump::InputReleased(const FGameplayAbilitySpecHandle Handl
  */
 void UGameplayAbility_Jump::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo * ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
 	if (ScopeLockCount > 0)
 	{
 		WaitingToExecute.Add(FPostLockDelegate::CreateUObject(this, &UGameplayAbility_Jump::CancelAbility, Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility));

@@ -65,8 +65,6 @@ void ABaseCharacter::PossessedBy(AController * NewController)
 
 void ABaseCharacter::InitializeAttributes()
 {
-	check(AbilitySystemComponent);
-	
 	check(DefaultAttributes);
 
 	if (!IsValid(DefaultAttributes))
@@ -127,7 +125,7 @@ void ABaseCharacter::AddCharacterAbilities()
 	for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : StartupAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(
-			FGameplayAbilitySpec(StartupAbility, 1.0f, static_cast<int32>(0), this));
+			FGameplayAbilitySpec(StartupAbility, 1.0f, static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));
 	}
 
 	AbilitySystemComponent->CharacterAbilitiesGiven = true;
@@ -153,9 +151,11 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	check(InputComponent);
 
-	if (!ASCInputBound && IsValid(GetAbilitySystemComponent()) && IsValid(InputComponent))
+	check(AbilitySystemComponent);
+
+	if (!ASCInputBound)
 	{
-		GetAbilitySystemComponent()->BindAbilityActivationToInputComponent(
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(
 			InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"),
 				FString("CancelTarget"), FString("EBaseAbilityInputID"),
 				static_cast<int32>(EBaseAbilityInputID::Confirm), static_cast<int32>(EBaseAbilityInputID::Cancel))

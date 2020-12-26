@@ -23,4 +23,5 @@ public:
 
 	// ??????? 
 	bool StartupEffectsApplied = false;
+
 };
