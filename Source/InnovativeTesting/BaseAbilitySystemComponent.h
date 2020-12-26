@@ -16,6 +16,8 @@ class INNOVATIVETESTING_API UBaseAbilitySystemComponent : public UAbilitySystemC
 
 public:
 
+	UBaseAbilitySystemComponent();
+
 	// ??????? 
 	bool CharacterAbilitiesGiven = false;
 

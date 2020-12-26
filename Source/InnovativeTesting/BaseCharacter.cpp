@@ -2,14 +2,35 @@
 
 
 #include "BaseCharacter.h"
-#include "Ability/BaseGameplayAbility.h"
+#include "Net/UnrealNetwork.h"
 
-// Sets default values
+#define LEVELCHARACTER 1.0f
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
 ABaseCharacter::ABaseCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	AbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	AttributeSetBase = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("AttributeSetBase"));
+
+}
+
+void ABaseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	check(AbilitySystemComponent);
+
+	AbilitySystemComponent->SetIsReplicated(true);
+
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 // Called when the game starts or when spawned
@@ -23,26 +44,17 @@ void ABaseCharacter::PossessedBy(AController * NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (GetLocalRole() != ROLE_Authority)
+	// ASC MixedMode replication requires that the ASC Owner's Owner be the Controller.
+	SetOwner(NewController);
+
+	check(AbilitySystemComponent);
+
+	GetAbilitySystemComponent()->InitAbilityActorInfo(this, this);
+
+	if (!IsValid(GetAttributeSetBase()))
 	{
 		return;
 	}
-
-	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
-
-	if (!IsValid(L_PlayerState))
-	{
-		return;
-	}
-
-	L_PlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(L_PlayerState, this);
-
-	if (!IsValid(L_PlayerState->GetAttributeSetBase()))
-	{
-		return;
-	}
-
-	//L_PlayerState->GetAttributeSetBase()->SetHealth(100.f);
 
 	InitializeAttributes();
 
@@ -53,130 +65,78 @@ void ABaseCharacter::PossessedBy(AController * NewController)
 
 void ABaseCharacter::InitializeAttributes()
 {
-	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
+	check(AbilitySystemComponent);
+	
+	check(DefaultAttributes);
 
-	if (!IsValid(L_PlayerState))
-	{
-		return;
-	}
-
-	if (!IsValid(L_PlayerState->GetAbilitySystemComponent()))
-	{
-		return;
-	}
-
-	if (!IsValid(L_PlayerState->DefaultAttributes))
+	if (!IsValid(DefaultAttributes))
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s() Missing DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 		return;
 	}
 
 	// Can run on Server and Client
-	FGameplayEffectContextHandle EffectContext = L_PlayerState->GetAbilitySystemComponent()->MakeEffectContext();
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = L_PlayerState->GetAbilitySystemComponent()->
-		MakeOutgoingSpec(L_PlayerState->DefaultAttributes, 1.0f, EffectContext);
+	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->
+		MakeOutgoingSpec(DefaultAttributes, LEVELCHARACTER, EffectContext);
 
 	if (NewHandle.IsValid())
 	{
-		FActiveGameplayEffectHandle ActiveGEHandle = L_PlayerState->GetAbilitySystemComponent()->
-			ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), L_PlayerState->GetAbilitySystemComponent());
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->
+			ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
 	}
 
 }
 
 void ABaseCharacter::AddStartupEffects()
 {
-	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
+	check(AbilitySystemComponent);
 
-	if (!IsValid(L_PlayerState))
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent->StartupEffectsApplied)
 	{
 		return;
 	}
 
-	if (!IsValid(L_PlayerState->GetAbilitySystemComponent()))
-	{
-		return;
-	}
-
-	UBaseAbilitySystemComponent * L_AbilitySystemComponent = Cast<UBaseAbilitySystemComponent>(L_PlayerState->GetAbilitySystemComponent());
-
-	if (!IsValid(L_AbilitySystemComponent))
-	{
-		return;
-	}
-
-	if (GetLocalRole() != ROLE_Authority ||	L_AbilitySystemComponent->StartupEffectsApplied)
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = L_AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	for (TSubclassOf<UGameplayEffect> GameplayEffect : L_PlayerState->StartupEffects)
+	for (TSubclassOf<UGameplayEffect> GameplayEffect : StartupEffects)
 	{
-		FGameplayEffectSpecHandle NewHandle = L_AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, 1.0f, EffectContext);
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, LEVELCHARACTER, EffectContext);
 		if (NewHandle.IsValid())
 		{
-			FActiveGameplayEffectHandle ActiveGEHandle = L_AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), L_AbilitySystemComponent);
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->
+				ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
 		}
 	}
 
-	L_AbilitySystemComponent->StartupEffectsApplied = true;
+	AbilitySystemComponent->StartupEffectsApplied = true;
 }
 
 void ABaseCharacter::AddCharacterAbilities()
 {
-	/*if (GetLocalRole() != ROLE_Authority)
+	check(AbilitySystemComponent);
+
+	if (AbilitySystemComponent->CharacterAbilitiesGiven)
 	{
 		return;
 	}
 
-	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
-
-	if (!IsValid(L_PlayerState))
+	for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : StartupAbilities)
 	{
-		return;
+		AbilitySystemComponent->GiveAbility(
+			FGameplayAbilitySpec(StartupAbility, 1.0f, static_cast<int32>(0), this));
 	}
 
-	UBaseAbilitySystemComponent * L_AbilitySystemComponent = CastChecked<UBaseAbilitySystemComponent>(L_PlayerState->GetAbilitySystemComponent());
-
-	if (!IsValid(L_AbilitySystemComponent))
-	{
-		return;
-	}
-
-	if (L_AbilitySystemComponent->CharacterAbilitiesGiven)
-	{
-		return;
-	}
-
-	for (TSubclassOf<UBaseGameplayAbility>& StartupAbility : L_PlayerState->StartupAbilities)
-	{
-		L_AbilitySystemComponent->GiveAbility(
-			FGameplayAbilitySpec(StartupAbility, 1.0f, static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));
-	}
-
-	L_AbilitySystemComponent->CharacterAbilitiesGiven = true;*/
+	AbilitySystemComponent->CharacterAbilitiesGiven = true;
 }
+
 
 float ABaseCharacter::GetHealth() const
 {
-	ABasePlayerState * L_PlayerState = GetPlayerState<ABasePlayerState>();
-
-	if (!IsValid(L_PlayerState))
-	{
-		return 0.0f;
-	}
-
-	if (!IsValid(L_PlayerState->GetAttributeSetBase()))
-	{
-		return 0.0f;
-	}
-
-	return L_PlayerState->GetAttributeSetBase()->GetHealth();
+	return GetAttributeSetBase()->GetHealth();
 }
 
 // Called every frame
@@ -191,4 +151,36 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	check(InputComponent);
+
+	if (!ASCInputBound && IsValid(GetAbilitySystemComponent()) && IsValid(InputComponent))
+	{
+		GetAbilitySystemComponent()->BindAbilityActivationToInputComponent(
+			InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"),
+				FString("CancelTarget"), FString("EBaseAbilityInputID"),
+				static_cast<int32>(EBaseAbilityInputID::Confirm), static_cast<int32>(EBaseAbilityInputID::Cancel))
+		);
+
+		ASCInputBound = true;
+	}
 }
+
+UAbilitySystemComponent * ABaseCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UBaseAttributeSet * ABaseCharacter::GetAttributeSetBase() const
+{
+	return AttributeSetBase;
+}
+
+void ABaseCharacter::OnRep_PlayerState()
+{
+
+}
+
+void ABaseCharacter::HealthChanged(const FOnAttributeChangeData & Data)
+{
+}
+
