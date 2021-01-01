@@ -8,7 +8,10 @@ UGameplayAbility_Jump::UGameplayAbility_Jump()
 {
 	AbilityInputID = EBaseAbilityInputID::Jump;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("locomotion.Jump")));
+
+	FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName("locomotion.Jump"));
+	AbilityTags.AddTag(AbilityTag);
+	ActivationOwnedTags.AddTag(AbilityTag);
 }
 
 bool UGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo * ActorInfo, const FGameplayTagContainer * SourceTags, const FGameplayTagContainer * TargetTags, OUT FGameplayTagContainer * OptionalRelevantTags) const

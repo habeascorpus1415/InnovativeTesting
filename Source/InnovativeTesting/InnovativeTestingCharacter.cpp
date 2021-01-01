@@ -56,7 +56,7 @@ void AInnovativeTestingCharacter::SetupPlayerInputComponent(class UInputComponen
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 
-	//PlayerInputComponent->BindAxis("MoveForward", this, &AInnovativeTestingCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AInnovativeTestingCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AInnovativeTestingCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
