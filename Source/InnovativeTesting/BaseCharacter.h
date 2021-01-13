@@ -103,7 +103,7 @@ public:
 	/* public: FUNCTION LIST */
 
 	// Sets default values for this character's properties
-	ABaseCharacter(const class FObjectInitializer& ObjectInitializer);
+	ABaseCharacter();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
