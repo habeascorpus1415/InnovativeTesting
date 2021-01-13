@@ -31,9 +31,19 @@ public:
 	*	Tip: If you don't want an Attribute to show up in the Editor's list of Attributes, 
 	*	you can use the Meta = (HideInDetailsView) property specifier.
 	*/
-	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
+	UPROPERTY(BlueprintReadOnly, Category = BaseAttribute, ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Health)
+
+	// Current stamina, used to execute special abilities. Capped by MaxStamina.
+	UPROPERTY(BlueprintReadOnly, Category = BaseAttribute, ReplicatedUsing = OnRep_Stamina)
+	FGameplayAttributeData Stamina;
+	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Stamina)
+
+	// MoveSpeed affects how fast characters can move.
+	UPROPERTY(BlueprintReadOnly, Category = BaseAttribute, ReplicatedUsing = OnRep_MoveSpeed)
+	FGameplayAttributeData MoveSpeed;
+	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MoveSpeed)
 
 protected:
 
@@ -51,8 +61,19 @@ protected:
 
 	/* protected: UFUNCTION LIST */
 
+
+	/**
+	* These OnRep functions exist to make sure that the ability system internal representations are synchronized properly during replication
+	**/
+
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
+
+	UFUNCTION()
+	virtual void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
+
+	UFUNCTION()
+	virtual void OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed);
 
 private:
 

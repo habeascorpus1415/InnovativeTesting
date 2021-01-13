@@ -11,10 +11,14 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-ABaseCharacter::ABaseCharacter()
+ABaseCharacter::ABaseCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Overlap);
+
+	bAlwaysRelevant = true;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
@@ -37,6 +41,13 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+}
+
+// Called every frame
+void ABaseCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 
 }
 
@@ -134,14 +145,30 @@ void ABaseCharacter::AddCharacterAbilities()
 
 float ABaseCharacter::GetHealth() const
 {
+	check(AttributeSetBase);
+
 	return GetAttributeSetBase()->GetHealth();
 }
 
-// Called every frame
-void ABaseCharacter::Tick(float DeltaTime)
+float ABaseCharacter::GetStamina() const
 {
-	Super::Tick(DeltaTime);
+	check(AttributeSetBase);
 
+	return GetAttributeSetBase()->GetStamina();
+}
+
+float ABaseCharacter::GetMoveSpeed() const
+{
+	check(AttributeSetBase);
+
+	return GetAttributeSetBase()->GetMoveSpeed();
+}
+
+float ABaseCharacter::GetMoveSpeedBaseValue() const
+{
+	check(AttributeSetBase);
+
+	return GetAttributeSetBase()->GetMoveSpeedAttribute().GetGameplayAttributeData(GetAttributeSetBase())->GetBaseValue();
 }
 
 // Called to bind functionality to input
@@ -175,12 +202,41 @@ UBaseAttributeSet * ABaseCharacter::GetAttributeSetBase() const
 	return AttributeSetBase;
 }
 
-void ABaseCharacter::OnRep_PlayerState()
+void ABaseCharacter::RemoveCharacterAbilities()
 {
+	check(AbilitySystemComponent);
 
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent->StartupEffectsApplied)
+	{
+		return;
+	}
+
+	// Remove any abilities added from a previous call. This checks to make sure the ability is in the startup 'CharacterAbilities' array.
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if ((Spec.SourceObject == this) && StartupAbilities.Contains(Spec.Ability->GetClass()))
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+
+	// Do in two passes so the removal happens after we have the full list
+	for (int32 i = 0; i < AbilitiesToRemove.Num(); i++)
+	{
+		AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
+	}
+
+	AbilitySystemComponent->CharacterAbilitiesGiven = false;
 }
 
 void ABaseCharacter::HealthChanged(const FOnAttributeChangeData & Data)
 {
+	float Health = Data.NewValue;
+}
+
+void ABaseCharacter::StaminaChanged(const FOnAttributeChangeData & Data)
+{
+	float Stamina = Data.NewValue;
 }
 

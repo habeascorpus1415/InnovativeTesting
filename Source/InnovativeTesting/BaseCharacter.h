@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 
 #include "BaseAbilitySystemComponent.h"
-#include "BaseAttributeSet.h"
+#include "AttributeSets/BaseAttributeSet.h"
 #include "Ability/BaseGameplayAbility.h"
 
 #include "AbilitySystemInterface.h"
@@ -64,6 +64,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Attributes)
 	float GetHealth() const;
 
+	UFUNCTION(BlueprintCallable, Category = Attributes)
+	float GetStamina() const;
+
+	/** Gets the Current value of MoveSpeed */
+	UFUNCTION(BlueprintCallable, Category = Attributes)
+	float GetMoveSpeed() const;
+
+	/** Gets the Base value of MoveSpeed */
+	UFUNCTION(BlueprintCallable, Category = Attributes)
+	float GetMoveSpeedBaseValue() const;
+
 private:
 
 	/* private: VARIABLE LIST */
@@ -79,8 +90,9 @@ protected:
 	/* Variable for asked bound player with input or not */
 	bool ASCInputBound = false;
 
-	/* protected: VARIABLE LIST */
+	/** The delegate for variables when changed */
 	FDelegateHandle HealthChangedDelegateHandle;
+	FDelegateHandle StaminaChangedDelegateHandle;
 
 private:
 
@@ -91,7 +103,7 @@ public:
 	/* public: FUNCTION LIST */
 
 	// Sets default values for this character's properties
-	ABaseCharacter();
+	ABaseCharacter(const class FObjectInitializer& ObjectInitializer);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -99,11 +111,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Implement IAbilitySystemInterface
+	/** Implement IAbilitySystemInterface */
 	virtual class UAbilitySystemComponent * GetAbilitySystemComponent() const override;
 
-	// GetAttribute
+	/** GetAttribute */
 	virtual class UBaseAttributeSet * GetAttributeSetBase() const;
+
+	/** Removes all CharacterAbilities. Can only be called by the Server. Removing on the Server will remove from Client too. */
+	virtual void RemoveCharacterAbilities();
 
 protected:
 
@@ -121,14 +136,12 @@ protected:
 	/* Base Effect */
 	virtual void AddStartupEffects();
 
-	/* client only */
-	virtual void OnRep_PlayerState() override;
-
 	/* Base Abilities */
 	virtual void AddCharacterAbilities();
 
-	// Attribute changed callbacks
+	//** Attribute changed callbacks */
 	virtual void HealthChanged(const FOnAttributeChangeData& Data);
+	virtual void StaminaChanged(const FOnAttributeChangeData& Data);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
