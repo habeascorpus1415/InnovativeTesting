@@ -9,7 +9,7 @@ UGameplayAbility_Jump::UGameplayAbility_Jump()
 	AbilityInputID = EBaseAbilityInputID::Jump;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
 
-	FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName("locomotion.Jump"));
+	FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName("GameplayEffect.Jump"));
 	AbilityTags.AddTag(AbilityTag);
 	ActivationOwnedTags.AddTag(AbilityTag);
 }
