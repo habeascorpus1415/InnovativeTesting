@@ -3,6 +3,7 @@
 
 #include "BaseCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "MovementComponent/BaseCharacterMovementComponent.h"
 
 #define LEVELCHARACTER 1.0f
 
@@ -11,7 +12,7 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-ABaseCharacter::ABaseCharacter()
+ABaseCharacter::ABaseCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
