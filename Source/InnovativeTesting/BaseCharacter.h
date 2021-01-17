@@ -13,6 +13,8 @@
 
 #include "BaseCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDiedDelegate, ABaseCharacter*, Character);
+
 UCLASS()
 class INNOVATIVETESTING_API ABaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -37,6 +39,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
 	TArray<TSubclassOf<class UBaseGameplayAbility>> StartupAbilities;
 
+	UPROPERTY(BlueprintAssignable, Category = GAS)
+	FCharacterDiedDelegate OnCharacterDied;
+
 protected:
 
 	/* protected: UPROPERTY LIST */
@@ -52,6 +57,8 @@ protected:
 private:
 
 	/* private: UFUNCTION LIST */
+
+	virtual void Die();
 
 public:
 

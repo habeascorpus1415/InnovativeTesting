@@ -5,6 +5,8 @@
 #include "Net/UnrealNetwork.h"
 #include "MovementComponent/BaseCharacterMovementComponent.h"
 
+#include "Components/CapsuleComponent.h"
+
 #define LEVELCHARACTER 1.0f
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -24,6 +26,11 @@ ABaseCharacter::ABaseCharacter(const class FObjectInitializer& ObjectInitializer
 	AbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
 	AttributeSetBase = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("AttributeSetBase"));
+
+	/** Attribute change callbacks */
+	HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &ABaseCharacter::HealthChanged);
+
+	StaminaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetStaminaAttribute()).AddUObject(this, &ABaseCharacter::StaminaChanged);
 
 }
 
@@ -144,6 +151,7 @@ void ABaseCharacter::AddCharacterAbilities()
 }
 
 
+
 float ABaseCharacter::GetHealth() const
 {
 	check(AttributeSetBase);
@@ -233,11 +241,44 @@ void ABaseCharacter::RemoveCharacterAbilities()
 
 void ABaseCharacter::HealthChanged(const FOnAttributeChangeData & Data)
 {
-	float Health = Data.NewValue;
+	const float NewHealth = Data.NewValue;
+
+	// Cache tags
+	const FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("GameplayEffect.Dead"));
+
+	// If the player died, handle death
+	if (NewHealth <= 0 && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
+	{
+		Die();
+	}
 }
 
 void ABaseCharacter::StaminaChanged(const FOnAttributeChangeData & Data)
 {
 	float Stamina = Data.NewValue;
 }
+
+void ABaseCharacter::Die()
+{
+	// Only runs on Server
+	RemoveCharacterAbilities();
+
+	const FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("GameplayEffect.Dead"));
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->GravityScale = 0;
+	GetCharacterMovement()->Velocity = FVector(0);
+
+	OnCharacterDied.Broadcast(this);
+
+	if (IsValid(AbilitySystemComponent))
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+
+		//AbilitySystemComponent->RemoveActiveEffects();
+
+		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+	}
+}
+
 
