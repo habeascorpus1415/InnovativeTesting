@@ -47,7 +47,7 @@ protected:
 	/* protected: UPROPERTY LIST */
 
 	/* Ability component */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Replicated)
 	class UBaseAbilitySystemComponent * AbilitySystemComponent;
 
 	/* Ability attribute */
@@ -153,4 +153,6 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PostInitializeComponents() override;
+
+	virtual void BindASCInput();
 };

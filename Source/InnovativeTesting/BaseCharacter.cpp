@@ -12,6 +12,7 @@
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 }
 
 ABaseCharacter::ABaseCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -136,7 +137,8 @@ void ABaseCharacter::AddCharacterAbilities()
 {
 	check(AbilitySystemComponent);
 
-	if (AbilitySystemComponent->CharacterAbilitiesGiven)
+	// Grant abilities, but only on the server	
+	if (GetLocalRole() != ROLE_Authority || AbilitySystemComponent->CharacterAbilitiesGiven)
 	{
 		return;
 	}
@@ -149,8 +151,6 @@ void ABaseCharacter::AddCharacterAbilities()
 
 	AbilitySystemComponent->CharacterAbilitiesGiven = true;
 }
-
-
 
 float ABaseCharacter::GetHealth() const
 {
@@ -185,20 +185,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	check(InputComponent);
-
-	check(AbilitySystemComponent);
-
-	if (!ASCInputBound)
-	{
-		AbilitySystemComponent->BindAbilityActivationToInputComponent(
-			InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"),
-				FString("CancelTarget"), FString("EBaseAbilityInputID"),
-				static_cast<int32>(EBaseAbilityInputID::Confirm), static_cast<int32>(EBaseAbilityInputID::Cancel))
-		);
-
-		ASCInputBound = true;
-	}
+	/** Binding input for ASC */
+	BindASCInput();
 }
 
 UAbilitySystemComponent * ABaseCharacter::GetAbilitySystemComponent() const
@@ -281,4 +269,20 @@ void ABaseCharacter::Die()
 	}
 }
 
+void ABaseCharacter::BindASCInput()
+{
+	check(InputComponent);
 
+	check(AbilitySystemComponent);
+
+	if (!ASCInputBound)
+	{
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(
+			InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"),
+				FString("CancelTarget"), FString("EBaseAbilityInputID"),
+				static_cast<int32>(EBaseAbilityInputID::Confirm), static_cast<int32>(EBaseAbilityInputID::Cancel))
+		);
+
+		ASCInputBound = true;
+	}
+}
