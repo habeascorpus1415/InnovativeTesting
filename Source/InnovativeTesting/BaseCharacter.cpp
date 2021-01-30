@@ -13,6 +13,8 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(ABaseCharacter, AbilitySystemComponent);
+
 }
 
 ABaseCharacter::ABaseCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -275,7 +277,7 @@ void ABaseCharacter::BindASCInput()
 
 	check(AbilitySystemComponent);
 
-	if (!ASCInputBound)
+	if (!ASCInputBound && IsValid(InputComponent) && IsValid(AbilitySystemComponent))
 	{
 		AbilitySystemComponent->BindAbilityActivationToInputComponent(
 			InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"),
