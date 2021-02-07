@@ -28,16 +28,16 @@ public:
 
 	// Default attributes for a character for initializing on spawn/respawn.
 	// This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS, Replicated)
+	TSubclassOf<UGameplayEffect> DefaultAttributes;
 
 	// These effects are only applied one time on startup
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
-	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS, Replicated)
+	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
 
 	// Default abilities for this Character. These will be removed on Character death and regiven if Character respawns.
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS)
-	TArray<TSubclassOf<class UBaseGameplayAbility>> StartupAbilities;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS, Replicated)
+	TArray<TSubclassOf<UBaseGameplayAbility>> StartupAbilities;
 
 	UPROPERTY(BlueprintAssignable, Category = GAS)
 	FCharacterDiedDelegate OnCharacterDied;
@@ -47,12 +47,12 @@ protected:
 	/* protected: UPROPERTY LIST */
 
 	/* Ability component */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Replicated)
-	class UBaseAbilitySystemComponent * AbilitySystemComponent;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GAS, Replicated)
+	UBaseAbilitySystemComponent * AbilitySystemComponent;
 
 	/* Ability attribute */
 	UPROPERTY()
-	class UBaseAttributeSet * AttributeSetBase;
+	UBaseAttributeSet * AttributeSetBase;
 
 private:
 

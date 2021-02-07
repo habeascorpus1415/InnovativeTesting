@@ -13,7 +13,10 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ABaseCharacter, AbilitySystemComponent);
+	DOREPLIFETIME(ABaseCharacter, AbilitySystemComponent); 
+	DOREPLIFETIME(ABaseCharacter, DefaultAttributes);
+	DOREPLIFETIME(ABaseCharacter, StartupEffects);
+	DOREPLIFETIME(ABaseCharacter, StartupAbilities);
 
 }
 
