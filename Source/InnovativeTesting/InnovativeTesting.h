@@ -24,9 +24,11 @@ enum class EBaseAbilityInputID : uint8
 	Jump				UMETA(DisplayName = "Jump"),
 	// 7 Roll	
 	Roll				UMETA(DisplayName = "Roll"),
-	// 8 PrimaryAction
+	// 8 Walk/Run
+	WalkOrRun			UMETA(DisplayName = "WalkOrRun"),
+	// 9 PrimaryAction
 	PrimaryAction		UMETA(DisplayName = "PrimaryAction"),
-	// 9 SecondaryAction
+	// 10 SecondaryAction
 	SecondaryAction		UMETA(DisplayName = "SecondaryAction")
 
 };

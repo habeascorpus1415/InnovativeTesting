@@ -46,16 +46,6 @@ FNetworkPredictionData_Client * UBaseCharacterMovementComponent::GetPredictionDa
 	return ClientPredictionData;
 }
 
-void UBaseCharacterMovementComponent::StopSprinting()
-{
-	SprintSpeedMultiplier = 1.f;
-}
-
-void UBaseCharacterMovementComponent::StartSprinting(float NewSprintSpeedMultiplier)
-{
-	SprintSpeedMultiplier = NewSprintSpeedMultiplier;
-}
-
 void UBaseCharacterMovementComponent::FBaseSavedMove::Clear()
 {
 	Super::Clear();

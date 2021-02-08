@@ -76,10 +76,13 @@ public:
 
 		// Sprint
 	UFUNCTION(BlueprintCallable)
-	virtual void StartSprinting(float NewSprintSpeedMultiplier);
+	virtual void ChangeMultiplierSpeed(float NewSprintSpeedMultiplier) { SprintSpeedMultiplier = NewSprintSpeedMultiplier; };
 
 	UFUNCTION(BlueprintCallable)
-	virtual void StopSprinting();
+	virtual void SetDefaultMultiplier() { SprintSpeedMultiplier = 1.0f; };
+
+	UFUNCTION(BlueprintCallable)
+	virtual float GetDefaultMultiplier() const { return SprintSpeedMultiplier; };
 
 protected:
 
